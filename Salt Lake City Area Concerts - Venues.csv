@@ -1,22 +1,23 @@
-Venue,Venue Type,Venue Size,Venue Website,Add to Dashboard list?
-Abravanel Hall,Indoors,Large,https://www.saltlakecountyarts.org/venues/abravanel-hall#events,Yes
-Capitol Theater,Indoors,Medium,https://www.saltlakecountyarts.org/venues/capitol-theatre#events,Yes
-Snow Park Outdoor Amphitheater,Outdoors,Large,https://www.deervalley.com/things-to-do/activities/concerts,Yes
-Delta Center,Indoors,Large,https://www.deltacenter.com/event-type/concert/,Yes
-Eccles Theater,Indoors,Large,https://www.saltlakecountyarts.org/venues/eccles-theater#events,Yes
-Kilby Court,Indoors,Small,https://www.kilbycourt.com/,Yes
-Kingsbury Hall,Indoors,Large,https://artstickets.utah.edu/category/kingsbury-hall/,Yes
-Maverik Center,Indoors,Large,https://maverikcenter.com/home/,
-Metro Music Hall,Indoors,Medium,https://www.metromusichall.com/,
-Odgen Amphitheater,Outdoors,Large,https://www.ogdentwilight.com/,Yes
-Red Butte Garden,Outdoors,Large,https://redbuttegarden.org/concerts/,Yes
-Sandy Amphitheater,Outdoors,Large,https://sandyamp.com/,
-The Complex,Indoors,Medium,https://www.thecomplexslc.com/,
-The Depot,Indoors,Medium,https://www.depotslc.com/shows,Yes
-The Great Saltair,Indoors,Medium,https://thesaltair.com/,
-The State Room,Indoors,Small,https://thestateroompresents.com/the-state-room,
-The Union Event Center,Indoors,Medium,https://theunioneventcenter.com/,Yes
-The Urban Lounge,Indoors,Small,https://www.theurbanloungeslc.com/,
-Twilight Concert Series,Outdoors,Large,https://saltlakearts.org/programs/twilight-concert-series,
-Utah Blues Festival,Outdoors,Large,https://www.utahbluesfest.org/,
-Utah First Amphitheater,Outdoors,Large,https://www.utahfirstamp.com/shows,
+Venue,Venue Type,Venue Size,Venue Website,Add to Dashboard list?,Notes
+Abravanel Hall,Indoors,Large,https://www.saltlakecountyarts.org/venues/abravanel-hall#events,Yes,
+Capitol Theater,Indoors,Medium,https://www.saltlakecountyarts.org/venues/capitol-theatre#events,Yes,
+Snow Park Outdoor Amphitheater,Outdoors,Large,https://www.deervalley.com/things-to-do/activities/concerts,Yes,
+Delta Center,Indoors,Large,https://www.deltacenter.com/event-type/concert/,Yes,
+Eccles Theater,Indoors,Large,https://www.saltlakecountyarts.org/venues/eccles-theater#events,Yes,
+Kilby Court,Indoors,Small,https://www.kilbycourt.com/,Yes,
+Kingsbury Hall,Indoors,Large,https://artstickets.utah.edu/category/kingsbury-hall/,Yes,
+Maverik Center,Indoors,Large,https://maverikcenter.com/home/,Yes,
+Metro Music Hall,Indoors,Medium,https://www.metromusichall.com/,Yes,
+Odgen Amphitheater,Outdoors,Large,https://www.ogdentwilight.com/,Yes,
+Red Butte Garden,Outdoors,Large,https://redbuttegarden.org/concerts/,Yes,
+Sandy Amphitheater,Outdoors,Large,https://sandyamp.com/,Yes,
+The Complex,Indoors,Medium,https://www.thecomplexslc.com/,,
+The Depot,Indoors,Medium,https://www.depotslc.com/shows,Yes,
+The Great Saltair,Indoors,Medium,https://thesaltair.com/,Yes,
+The State Room,Indoors,Small,https://thestateroompresents.com/the-state-room,Yes,
+The Union Event Center,Indoors,Medium,https://theunioneventcenter.com/,Yes,
+The Urban Lounge,Indoors,Small,https://www.theurbanloungeslc.com/,,
+Library Square,Outdoors,Large,https://saltlakearts.org/programs/twilight-concert-series,Yes,Twilight Concert Series
+Gallivan Center,Outdoors,Large,https://saltlakearts.org/programs/twilight-concert-series,Yes,Twilight Concert Series
+Gallivan Center,Outdoors,Large,https://www.utahbluesfest.org/,Yes,Utah Blues Festival
+Utah First Amphitheater,Outdoors,Large,https://www.utahfirstamp.com/shows,,
