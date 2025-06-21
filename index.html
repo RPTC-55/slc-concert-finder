@@ -47,8 +47,7 @@
                         <div>
                             <label for="venueFilter" class="block text-sm font-medium text-gray-700">Filter by Venue</label>
                             <select id="venueFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                <option>All Venues</option>
-                            </select>
+                                <option>All Venues</option>                            </select>
                         </div>
                         <div>
                             <label for="venueSizeFilter" class="block text-sm font-medium text-gray-700">Filter by Venue Size</label>
@@ -120,39 +119,30 @@
 
         async function fetchData() {
             try {
-                // --- MODIFIED: Use relative paths for GitHub Pages ---
-                // Ensure the CSV files are in the same directory as this HTML file in your repository.
+                // Use relative paths for GitHub Pages
                 const concertListUrl = 'Salt Lake City Area Concerts - Concert_List.csv';
                 const venuesUrl = 'Salt Lake City Area Concerts - Venues.csv';
 
-                // Fetch both CSV files concurrently
                 const [concertsResponse, venuesResponse] = await Promise.all([
                     fetch(concertListUrl),
                     fetch(venuesUrl)
                 ]);
 
-                // Check if fetches were successful
                 if (!concertsResponse.ok || !venuesResponse.ok) {
                     throw new Error('Failed to fetch concert data. Make sure the CSV files are in the same repository folder as the HTML file.');
                 }
 
-                // Get text content from responses
                 const [concertsText, venuesText] = await Promise.all([
                     concertsResponse.text(),
                     venuesResponse.text()
                 ]);
 
-                // Parse the CSV text into arrays of objects
                 const concerts = parseCSV(concertsText);
                 const venues = parseCSV(venuesText);
 
-                // Create a map of venues for easy lookup
                 const venuesMap = new Map(venues.map(v => [v.Venue, v]));
-
-                // Merge concert and venue data
                 const mergedData = concerts.map(concert => {
                     const venueDetails = venuesMap.get(concert.Venue);
-                    // Combine concert info with venue details
                     return { ...concert, ...venueDetails };
                 });
                 
@@ -160,34 +150,29 @@
 
             } catch (error) {
                 console.error("Error fetching or processing data:", error);
-                // Display an error message to the user on the page
                 const concertList = document.getElementById('concertList');
                 concertList.innerHTML = `<div class="col-span-full text-center py-16">
                     <h3 class="text-lg font-medium text-red-700">Error Loading Concerts</h3>
                     <p class="mt-1 text-sm text-red-500">${error.message}</p>
                 </div>`;
-                return []; // Return empty array on error
+                return [];
             }
         }
 
         // --- CSV PARSING UTILITY ---
         
         function parseCSV(text) {
-             // --- MODIFIED: More robust line splitting ---
             const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
             if (lines.length < 2) return [];
             
-            // Extract headers, trimming whitespace and removing quotes
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             const data = [];
 
             for (let i = 1; i < lines.length; i++) {
-                // This regex handles commas inside quoted fields
                 const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (values.length === headers.length) {
                     const entry = {};
                     for (let j = 0; j < headers.length; j++) {
-                        // Clean up the value by removing quotes and trimming whitespace
                         const value = values[j] ? values[j].trim().replace(/^"|"$/g, '') : '';
                         entry[headers[j]] = value;
                     }
@@ -217,46 +202,21 @@
         // --- POPULATE FILTERS ---
 
         function populateFilters(concerts) {
-            // Get unique values for each filter category, filtering out any empty/undefined values
             const artists = [...new Set(concerts.map(c => c.Artist).filter(Boolean))].sort();
             const venues = [...new Set(concerts.map(c => c.Venue).filter(Boolean))].sort();
             const venueSizes = [...new Set(concerts.map(c => c['Venue Size']).filter(Boolean))].sort((a,b) => a-b);
             const venueTypes = [...new Set(concerts.map(c => c['Venue Type']).filter(Boolean))].sort();
 
-            // Populate artist dropdown
-            artists.forEach(artist => {
-                const option = document.createElement('option');
-                option.value = artist;
-                option.textContent = artist;
-                artistFilter.appendChild(option);
-            });
-            // Populate venue dropdown
-            venues.forEach(venue => {
-                const option = document.createElement('option');
-                option.value = venue;
-                option.textContent = venue;
-                venueFilter.appendChild(option);
-            });
-            // Populate venue size dropdown
-            venueSizes.forEach(size => {
-                const option = document.createElement('option');
-                option.value = size;
-                option.textContent = size;
-                venueSizeFilter.appendChild(option);
-            });
-            // Populate venue type dropdown
-            venueTypes.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                venueTypeFilter.appendChild(option);
-            });
+            artists.forEach(artist => artistFilter.add(new Option(artist, artist)));
+            venues.forEach(venue => venueFilter.add(new Option(venue, venue)));
+            venueSizes.forEach(size => venueSizeFilter.add(new Option(size, size)));
+            venueTypes.forEach(type => venueTypeFilter.add(new Option(type, type)));
         }
         
         // --- RENDERING LOGIC ---
 
         function renderConcerts(concerts) {
-            concertListElement.innerHTML = ''; // Clear previous list
+            concertListElement.innerHTML = ''; 
 
             if (concerts.length === 0) {
                 noResultsElement.classList.remove('hidden');
@@ -265,30 +225,25 @@
             }
 
             concerts.forEach(concert => {
-                // Skip rendering if essential data is missing
-                if (!concert.Artist || !concert['Show Date']) {
-                    return;
-                }
+                if (!concert.Artist || !concert['Show Date']) return;
                 
-                // Create the main card container
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-lg shadow-md overflow-hidden flex flex-col fade-in';
 
-                // Format the date for display, handle invalid dates gracefully
                 const showDate = new Date(concert['Show Date']);
-                 if (isNaN(showDate.getTime())) {
+                if (isNaN(showDate.getTime())) {
                     console.warn('Invalid date for concert:', concert);
-                    return; // Skip rendering this card
+                    return;
                 }
                 const formattedDate = showDate.toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
-                    timeZone: 'UTC' // Treat date as UTC to avoid timezone shift issues
+                    timeZone: 'UTC'
                 });
 
-                // Card content
+                // --- MODIFIED: Card structure updated to include Show Info link as a button ---
                 card.innerHTML = `
                     <div class="p-5 flex-grow">
                         <p class="text-sm text-indigo-600 font-semibold">${formattedDate}</p>
@@ -304,13 +259,18 @@
                                 Size: ${concert['Venue Size']}
                            </span>
                         </div>
-
-                        <p class="mt-4 text-sm text-gray-700">${concert['Show Information'] || 'No additional information.'}</p>
                     </div>
-                    <div class="p-5 bg-gray-50">
-                        <a href="${concert['Ticket Purchase Page']}" target="_blank" class="block w-full text-center bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-200">
-                           Buy Tickets
-                        </a>
+                    <div class="p-5 bg-gray-50 border-t border-gray-200">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            ${concert['Show Information'] ?
+                            `<a href="${concert['Show Information']}" target="_blank" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Show Info
+                            </a>` : ''
+                            }
+                            <a href="${concert['Ticket Purchase Page']}" target="_blank" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                               Buy Tickets
+                            </a>
+                        </div>
                     </div>
                 `;
                 concertListElement.appendChild(card);
@@ -322,9 +282,8 @@
         function applyFiltersAndSort() {
             let filteredConcerts = [...allConcerts];
             const now = new Date();
-            now.setHours(0,0,0,0); // Set to beginning of today for accurate comparison
+            now.setHours(0,0,0,0);
 
-            // 1. Filter by "Show Past Concerts" checkbox
             if (!showPastCheckbox.checked) {
                 filteredConcerts = filteredConcerts.filter(c => {
                     const showDate = new Date(c['Show Date']);
@@ -332,48 +291,36 @@
                 });
             }
 
-            // 2. Filter by selected artist
             if (artistFilter.value !== 'All Artists') {
                 filteredConcerts = filteredConcerts.filter(c => c.Artist === artistFilter.value);
             }
-
-            // 3. Filter by selected venue
             if (venueFilter.value !== 'All Venues') {
                 filteredConcerts = filteredConcerts.filter(c => c.Venue === venueFilter.value);
             }
-            
-            // 4. Filter by venue size
             if (venueSizeFilter.value !== 'All Sizes') {
                 filteredConcerts = filteredConcerts.filter(c => c['Venue Size'] === venueSizeFilter.value);
             }
-
-            // 5. Filter by venue type
             if (venueTypeFilter.value !== 'All Types') {
                 filteredConcerts = filteredConcerts.filter(c => c['Venue Type'] === venueTypeFilter.value);
             }
 
-            // 6. Filter by date range
             const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
             const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
 
             if (startDate) {
-                 // Adjust start date to the beginning of the day (in UTC)
                 startDate.setUTCHours(0, 0, 0, 0);
                 filteredConcerts = filteredConcerts.filter(c => new Date(c['Show Date']) >= startDate);
             }
             if (endDate) {
-                 // Adjust end date to the end of the day (in UTC)
                 endDate.setUTCHours(23, 59, 59, 999);
                 filteredConcerts = filteredConcerts.filter(c => new Date(c['Show Date']) <= endDate);
             }
             
-            // 7. Sort the results
             const [sortKey, sortOrder] = sortElement.value.split('_');
             filteredConcerts.sort((a, b) => {
                 let valA = a[sortKey];
                 let valB = b[sortKey];
 
-                // Special handling for date and numeric sorting
                 if (sortKey === 'Show Date') {
                     valA = new Date(valA);
                     valB = new Date(valB);
@@ -385,13 +332,8 @@
                     valB = valB.toLowerCase();
                 }
 
-                // Comparison logic
-                if (valA < valB) {
-                    return sortOrder === 'asc' ? -1 : 1;
-                }
-                if (valA > valB) {
-                    return sortOrder === 'asc' ? 1 : -1;
-                }
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
 
@@ -401,25 +343,19 @@
         // --- INITIALIZATION AND EVENT LISTENERS ---
 
         async function initializeApp() {
-            // Display a loading indicator
             concertListElement.innerHTML = '<p class="col-span-full text-center py-16 text-gray-500">Loading concerts...</p>';
             
-            // Fetch and process data
             allConcerts = await fetchData();
 
             if(allConcerts.length > 0) {
-              // Populate filter dropdowns with available options
               populateFilters(allConcerts);
-              // Apply default filters and sorting
               applyFiltersAndSort();
             }
 
-            // Attach event listeners to all controls
             [artistFilter, venueFilter, venueSizeFilter, venueTypeFilter, sortElement, showPastCheckbox, startDateInput, endDateInput].forEach(el => {
                 el.addEventListener('change', applyFiltersAndSort);
             });
             
-            // Event listener for the reset button
             resetFiltersBtn.addEventListener('click', () => {
                 artistFilter.value = 'All Artists';
                 venueFilter.value = 'All Venues';
@@ -433,7 +369,6 @@
             });
         }
 
-        // Start the application
         initializeApp();
 
     </script>
