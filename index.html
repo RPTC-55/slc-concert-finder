@@ -119,9 +119,11 @@
 
         async function fetchData() {
             try {
-                // Use relative paths for GitHub Pages
-                const concertListUrl = 'Salt Lake City Area Concerts - Concert_List.csv';
-                const venuesUrl = 'Salt Lake City Area Concerts - Venues.csv';
+                // --- MODIFIED: Add cache-busting query string ---
+                // This adds the current timestamp to the URL to prevent the browser from using old, cached versions of the files.
+                const cacheBust = `?v=${new Date().getTime()}`;
+                const concertListUrl = `Salt Lake City Area Concerts - Concert_List.csv${cacheBust}`;
+                const venuesUrl = `Salt Lake City Area Concerts - Venues.csv${cacheBust}`;
 
                 const [concertsResponse, venuesResponse] = await Promise.all([
                     fetch(concertListUrl),
@@ -243,7 +245,6 @@
                     timeZone: 'UTC'
                 });
 
-                // --- MODIFIED: Card structure updated to include Show Info link as a button ---
                 card.innerHTML = `
                     <div class="p-5 flex-grow">
                         <p class="text-sm text-indigo-600 font-semibold">${formattedDate}</p>
