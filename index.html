@@ -119,8 +119,6 @@
 
         async function fetchData() {
             try {
-                // --- MODIFIED: Add cache-busting query string ---
-                // This adds the current timestamp to the URL to prevent the browser from using old, cached versions of the files.
                 const cacheBust = `?v=${new Date().getTime()}`;
                 const concertListUrl = `Salt Lake City Area Concerts - Concert_List.csv${cacheBust}`;
                 const venuesUrl = `Salt Lake City Area Concerts - Venues.csv${cacheBust}`;
@@ -201,18 +199,31 @@
 
         let allConcerts = [];
 
-        // --- POPULATE FILTERS ---
+        // --- NEW: DYNAMIC FILTER POPULATION ---
+        
+        function repopulateSelect(selectElement, options, selectedValue) {
+            const currentVal = selectElement.value;
+            
+            // Clear all but the first ("All...") option
+            while (selectElement.options.length > 1) {
+                selectElement.remove(1);
+            }
+            
+            const fragment = document.createDocumentFragment();
+            options.forEach(optionText => {
+                const option = document.createElement('option');
+                option.value = optionText;
+                option.textContent = optionText;
+                fragment.appendChild(option);
+            });
+            selectElement.appendChild(fragment);
 
-        function populateFilters(concerts) {
-            const artists = [...new Set(concerts.map(c => c.Artist).filter(Boolean))].sort();
-            const venues = [...new Set(concerts.map(c => c.Venue).filter(Boolean))].sort();
-            const venueSizes = [...new Set(concerts.map(c => c['Venue Size']).filter(Boolean))].sort((a,b) => a-b);
-            const venueTypes = [...new Set(concerts.map(c => c['Venue Type']).filter(Boolean))].sort();
-
-            artists.forEach(artist => artistFilter.add(new Option(artist, artist)));
-            venues.forEach(venue => venueFilter.add(new Option(venue, venue)));
-            venueSizes.forEach(size => venueSizeFilter.add(new Option(size, size)));
-            venueTypes.forEach(type => venueTypeFilter.add(new Option(type, type)));
+            // Restore the previously selected value if it still exists in the new options
+            if (options.includes(currentVal)) {
+                selectElement.value = currentVal;
+            } else {
+                 selectElement.value = selectElement.options[0].value;
+            }
         }
         
         // --- RENDERING LOGIC ---
@@ -278,86 +289,98 @@
             });
         }
         
-        // --- FILTERING AND SORTING LOGIC ---
+        // --- REVISED: FILTERING, SORTING, AND UPDATING LOGIC ---
 
         function applyFiltersAndSort() {
-            let filteredConcerts = [...allConcerts];
-            const now = new Date();
-            now.setHours(0,0,0,0);
+            // Get current selections
+            const selections = {
+                artist: artistFilter.value,
+                venue: venueFilter.value,
+                venueSize: venueSizeFilter.value,
+                venueType: venueTypeFilter.value,
+                startDate: startDateInput.value,
+                endDate: endDateInput.value,
+                showPast: showPastCheckbox.checked,
+            };
 
-            if (!showPastCheckbox.checked) {
-                filteredConcerts = filteredConcerts.filter(c => {
-                    const showDate = new Date(c['Show Date']);
-                    return !isNaN(showDate.getTime()) && showDate >= now;
-                });
-            }
+            // Helper function to filter concerts based on all *other* active filters.
+            const getPotentialConcerts = (excludeFilter) => {
+                let potential = [...allConcerts];
 
-            if (artistFilter.value !== 'All Artists') {
-                filteredConcerts = filteredConcerts.filter(c => c.Artist === artistFilter.value);
-            }
-            if (venueFilter.value !== 'All Venues') {
-                filteredConcerts = filteredConcerts.filter(c => c.Venue === venueFilter.value);
-            }
-            if (venueSizeFilter.value !== 'All Sizes') {
-                filteredConcerts = filteredConcerts.filter(c => c['Venue Size'] === venueSizeFilter.value);
-            }
-            if (venueTypeFilter.value !== 'All Types') {
-                filteredConcerts = filteredConcerts.filter(c => c['Venue Type'] === venueTypeFilter.value);
-            }
+                // Apply all filters except the one we're currently building the options for.
+                if (excludeFilter !== 'artist' && selections.artist !== 'All Artists') {
+                    potential = potential.filter(c => c.Artist === selections.artist);
+                }
+                if (excludeFilter !== 'venue' && selections.venue !== 'All Venues') {
+                    potential = potential.filter(c => c.Venue === selections.venue);
+                }
+                if (excludeFilter !== 'venueSize' && selections.venueSize !== 'All Sizes') {
+                    potential = potential.filter(c => c['Venue Size'] === selections.venueSize);
+                }
+                if (excludeFilter !== 'venueType' && selections.venueType !== 'All Types') {
+                    potential = potential.filter(c => c['Venue Type'] === selections.venueType);
+                }
+                
+                // Date and past-show filters are always applied
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                if (!selections.showPast) {
+                    potential = potential.filter(c => new Date(c['Show Date']) >= now);
+                }
+                if (selections.startDate) {
+                    potential = potential.filter(c => new Date(c['Show Date']) >= new Date(selections.startDate));
+                }
+                if (selections.endDate) {
+                    potential = potential.filter(c => new Date(c['Show Date']) <= new Date(selections.endDate));
+                }
+                return potential;
+            };
 
-            const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-            const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+            // Update the filter dropdowns with relevant options
+            repopulateSelect(artistFilter, [...new Set(getPotentialConcerts('artist').map(c => c.Artist).filter(Boolean))].sort());
+            repopulateSelect(venueFilter, [...new Set(getPotentialConcerts('venue').map(c => c.Venue).filter(Boolean))].sort());
+            repopulateSelect(venueSizeFilter, [...new Set(getPotentialConcerts('venueSize').map(c => c['Venue Size']).filter(Boolean))].sort((a,b) => a-b));
+            repopulateSelect(venueTypeFilter, [...new Set(getPotentialConcerts('venueType').map(c => c['Venue Type']).filter(Boolean))].sort());
 
-            if (startDate) {
-                startDate.setUTCHours(0, 0, 0, 0);
-                filteredConcerts = filteredConcerts.filter(c => new Date(c['Show Date']) >= startDate);
-            }
-            if (endDate) {
-                endDate.setUTCHours(23, 59, 59, 999);
-                filteredConcerts = filteredConcerts.filter(c => new Date(c['Show Date']) <= endDate);
-            }
+            // Get the final list of concerts to display by applying all filters
+            let displayConcerts = getPotentialConcerts(null);
             
+            // Sort the final list
             const [sortKey, sortOrder] = sortElement.value.split('_');
-            filteredConcerts.sort((a, b) => {
+            displayConcerts.sort((a, b) => {
                 let valA = a[sortKey];
                 let valB = b[sortKey];
 
-                if (sortKey === 'Show Date') {
-                    valA = new Date(valA);
-                    valB = new Date(valB);
-                } else if (sortKey === 'Venue Size') {
-                     valA = parseInt(valA, 10) || 0;
-                     valB = parseInt(valB, 10) || 0;
-                } else if (typeof valA === 'string') {
-                    valA = valA.toLowerCase();
-                    valB = valB.toLowerCase();
-                }
+                if (sortKey === 'Show Date') { valA = new Date(valA); valB = new Date(valB); } 
+                else if (sortKey === 'Venue Size') { valA = parseInt(valA, 10) || 0; valB = parseInt(valB, 10) || 0; } 
+                else if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
 
                 if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
                 if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
 
-            renderConcerts(filteredConcerts);
+            renderConcerts(displayConcerts);
         }
 
         // --- INITIALIZATION AND EVENT LISTENERS ---
 
         async function initializeApp() {
             concertListElement.innerHTML = '<p class="col-span-full text-center py-16 text-gray-500">Loading concerts...</p>';
-            
             allConcerts = await fetchData();
 
             if(allConcerts.length > 0) {
-              populateFilters(allConcerts);
+              // Initial call populates dropdowns and renders the initial list
               applyFiltersAndSort();
             }
 
+            // Attach event listeners to all controls to re-run the logic on any change
             [artistFilter, venueFilter, venueSizeFilter, venueTypeFilter, sortElement, showPastCheckbox, startDateInput, endDateInput].forEach(el => {
                 el.addEventListener('change', applyFiltersAndSort);
             });
             
             resetFiltersBtn.addEventListener('click', () => {
+                // Reset all filter controls to their default state
                 artistFilter.value = 'All Artists';
                 venueFilter.value = 'All Venues';
                 venueSizeFilter.value = 'All Sizes';
@@ -366,6 +389,7 @@
                 showPastCheckbox.checked = false;
                 startDateInput.value = '';
                 endDateInput.value = '';
+                // Re-run the logic to apply the reset
                 applyFiltersAndSort();
             });
         }
